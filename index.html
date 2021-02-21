@@ -1,64 +1,90 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>073 Film Gallery</title>
-    <!-- https://google.github.io/material-design-icons/#icon-font-for-the-web -->
-    <!-- Using via Google Web Fonts -->
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
-    <!-- https://tailwindcss.com/docs/installation -->
-    <!-- Using Tailwind via CDN -->
-    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet" />
-    <!-- https://v3.vuejs.org/guide/installation.html#release-notes -->
-    <!-- Vue CDN -->
-    <script src="https://unpkg.com/vue@3.0.0-beta.12/dist/vue.global.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>073 Film Gallery</title>
+  <!-- https://google.github.io/material-design-icons/#icon-font-for-the-web -->
+  <!-- Using via Google Web Fonts -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+  <!-- https://tailwindcss.com/docs/installation -->
+  <!-- Using Tailwind via CDN -->
+  <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet" />
+  <!-- https://v3.vuejs.org/guide/installation.html#release-notes -->
+  <!-- Vue CDN -->
+  <script src="https://unpkg.com/vue@3.0.0-beta.12/dist/vue.global.js"></script>
 
-    <!-- font embeded -->
-    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@200;300;600;700&display=swap" rel="stylesheet">
-    
-    <!-- styling -->
-    <style>
-        body{
-          color: darkblue;
-          font: 'Oswald bolder';
-        }
-        .material-icons {
-          color: crimson;
-        }
+  <!-- font embeded -->
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@200;300;600;700&display=swap" rel="stylesheet">
 
-    </style>
+  <!-- styling -->
+  <style>
+    body {
+      color: darkblue;
+      font: 'Oswald bolder';
+    }
+
+    .material-icons {
+      color: crimson;
+    }
+  </style>
 </head>
+
 <body id="app">
   <div class="max-w-2xl  mx-auto pt-10">
+    <div v-if="!isShowImg">
 
-  <!-- SEARCH ZONE -->
-    <div class="flex justify-between space-x-2 mb-10">
-      <input type="text" v-model="inputSearch" placeholder="Please enter text for searching photos" class="p-2 bg-white rounded flex-1 border-2 border-black-500">
-      <button style="color: cornsilk;" @click="addNewTask" class="bg-red-500 text-white  py-1 px-6 rounded material-icons">search</button>
-  </div>
 
-    <p class="text-xl font-bold">Photo({{ calculate }}) </p>
-    <p class="text-xl font-bold">Favorite: ({{favCount}})</p>
-    <div v-for="(list,index) in lists" class="flex items-center">
-      <div class="flex flex-col mt-20">
-        <span style="color: darkorange; font-weight: bold;"> {{list.name}} </span>
-        <img :src="list.image" :alt="list.name" class="ml-48 mb-10 h-60 w-60"/>
-        
-        <!-- <img :src="list.image" :alt="list.name" class="ml-48 mb-10 h-48 w-48"  v-show="list.done"/> -->
+      <!-- SEARCH ZONE -->
+      <div class="flex justify-between space-x-2 mb-10">
+        <button style="color: cornsilk;" @click="showSearchBox" v-show="!isShowSearchBox"
+          class="bg-red-500 text-white  py-1 px-6 rounded material-icons cursor-pointer">search</button>
+        <input type="text" v-model="keyword" v-if="isShowSearchBox" @keyup.enter="Search"
+          placeholder="Please enter text for searching photos"
+          class="p-2 bg-white rounded flex-1 border-2 border-black-500">
+
+        <button style="color: cornsilk;" @click="Cancel" v-if="isShowSearchBox"
+          class="bg-red-500 text-white py-1 px-6 rounded  material-icons">search_off</button>
       </div>
+
+      <!-- Counted Area -->
+      <p class="text-xl font-bold">Photo({{ calculate }}) </p>
+      <p class="text-xl font-bold">Favorite: ({{favCount}})</p>
+
+      <!-- lists Area  -->
+      <div v-for="(list,index) in lists" class="flex items-center" :class="[list.isHidden ? 'hidden' : '']">
+        <div class="flex flex-col mt-20">
+          <span style="color: darkorange; font-weight: bold;"> {{list.name}} </span>
+          <img :src="list.image" :alt="list.name" :key="list.name" class="ml-48 mb-10 h-60 w-60 cursor-pointer"
+            @click="handleClickImg(index)">
+
+
+        </div>
         <!-- <button v-on:click="toggleDone(index)" class="w-12 h-12 ml-20 material-icons">          visibility</button> -->
-        <button v-if="list.isFav" class="material-icons w-12 h-12 mt-5 ml-20"  @click="updateFav(index)"> favorite</button>
+        <button v-if="list.isFav" class="material-icons w-12 h-12 mt-5 ml-20" @click="updateFav(index)">
+          favorite</button>
         <button v-else class="material-icons w-12 h-12 mt-5 ml-20 " @click="updateFav(index)"> favorite_border </button>
+      </div>
 
-</div>
+
+      <p v-if="!isFound" class="flex justify-center"> Not found. </p>
     </div>
-   </div> 
-    
-    
-    
-      <!-- my main.js -->
 
-      <script src="./main.js"></script> 
+    <!-- preview canvas -->
+    <div class="bg-black bg-opacity-80 flex justify-center w-auto" v-else="isShowImg">
+      <div class="container  min-h-screen w-full flex flex-col h-full">
+        <i style="color: aliceblue;"class="text-white self-end justify-self-center cursor-pointer mt-5 text-3xl p-3 material-icons"
+          @click="Close">cancel</i>
+        <div class="flex justify-center h-full items-center">
+          <img :src="currentImg" :alt="lists.name" >
+        </div>
+      </div>
+    </div>
+ 
+  <!-- my main.js -->
+
+  <script src="./main.js"></script>
 </body>
+
 </html>
